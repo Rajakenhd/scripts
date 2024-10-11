@@ -38,22 +38,26 @@ while true; do
 	# disconnect is detected when the ping packet doesn't return within a given time (in this case same as the ping interval)
 	if [[ $(expr length + "$output") == 0 ]] && [[ $(expr length + "$(echo "$ping" | grep "time")") -gt 0 ]]; then
 		connected=false
-		echo "$ping"
 		echo "disconnect detected"
+		
 		available=$(nmcli -t -f active,ssid dev wifi | grep "$ssid")
 		if [[ ${#available} == 0 ]]; then
 			echo "Error whilst trying to reconnect, wifi not found anymore! aborting..."
 			exit 1
 		else
-			nmcli con up $uuid_wifi
 			if [[ $vpn_status == "activated" ]]; then
+				nmcli con down $uuid_vpn
+				nmcli con up $uuid_wifi
 				nmcli con up $uuid_vpn
+			else
+				nmcli con up $uuid_wifi
 			fi
 			connected=true
 		fi
 	else
 		if $connected ; then
 			echo "Reconnected Successfully"
+			notify-send "Reconnected sucessfully"
 			connected=false
 		fi
 	fi
