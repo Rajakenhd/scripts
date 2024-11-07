@@ -10,20 +10,17 @@ fi
 # the ping interval (2 seconds in this case)
 interval=5
 
-# the ssid of the currently connected wifi network
-ssid=$(nmcli -t -f active,ssid dev wifi | grep -E "^yes" | cut -d: -f2)
-
 # get the list of connections, and select the current wifi and vpn uuids
-connections=$(nmcli -t -f "type,uuid,name" con)
-uuid_vpn=$(echo "$connections" | grep -E "^vpn" | cut -d: -f2)
-uuid_wifi=$(echo "$connections" | grep "$ssid" | cut -d: -f2)
+ssid=$(nmcli -t con show --active | grep -i wireless | cut -d: -f1)
+uuid_vpn=$(nmcli -t con show --active | grep -i vpn | cut -d: -f2)
+uuid_wifi=$(nmcli -t con show --active | grep "$ssid" | cut -d: -f2)
 
 vpn_status=$(nmcli -t -f GENERAL.STATE con show $uuid_vpn | cut -d: -f2)
 
 echo "current SSID: $ssid with uuid: $uuid_wifi"
 
 if [[ $vpn_status == "activated" ]] ; then
-	echo "current VPN: $(echo "$connections" | grep -E "^vpn" | cut -d: -f3) with uuid: $uuid_vpn"
+	echo "current VPN: $(nmcli -t con show --active | grep $uuid_vpn | cut -d: -f1) with uuid: $uuid_vpn"
 else
 	echo $vpn_status
 	echo -e "\033[0;31m Warning: You are not connected to a VPN!\033[0m"
